@@ -1,37 +1,16 @@
-# models/chat.py
-"""
-Modèles Pydantic pour la validation des données
-Inclut les modèles du TP1 et les nouveaux modèles pour le TP2
-"""
-from typing import Dict, List, Optional
 from pydantic import BaseModel
+from typing import List, Optional
 
-# ---- Modèles du TP1 ----
 class ChatRequestTP1(BaseModel):
-    """Requête de base pour une conversation sans contexte"""
-    message: str
-
-class ChatResponse(BaseModel):
-    """Réponse standard du chatbot"""
-    response: str
-
-class ChatRequestWithContext(BaseModel):
-    """Requête avec contexte de conversation du TP1"""
-    message: str
-    context: Optional[List[Dict[str, str]]] = []
-
-# ---- Nouveaux modèles pour le TP2 ----
+    message: str  # Message utilisateur
 
 class ChatRequestTP2(BaseModel):
-    """Requête de base pour une conversation sans contexte"""
+    message: str  # Message utilisateur
+    session_id: str  # ID de la session (obligatoire pour TP2)
+
+class ChatRequestWithContext(BaseModel):
     message: str
-    session_id: str  # Ajouté pour supporter les deux versions
+    context: Optional[List[dict]] = None
 
-class ChatMessage(BaseModel):
-    """Structure d'un message individuel dans l'historique"""
-    role: str  # "user" ou "assistant"
-    content: str
-
-class ChatHistory(BaseModel):
-    """Collection de messages formant une conversation"""
-    messages: List[ChatMessage]
+class ChatResponse(BaseModel):
+    response: str

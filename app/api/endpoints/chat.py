@@ -1,4 +1,3 @@
-# api/chat.py
 """
 Routes FastAPI pour le chatbot
 Inclut les endpoints du TP1 et du TP2
@@ -7,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from models.chat import ChatRequestTP1, ChatRequestTP2, ChatRequestWithContext, ChatResponse
 from services.llm_service import LLMService
 from typing import Dict, List
+import uuid  # Pour générer un session_id unique
 
 router = APIRouter()
 llm_service = LLMService()
@@ -15,7 +15,9 @@ llm_service = LLMService()
 async def chat_simple(request: ChatRequestTP1) -> ChatResponse:
     """Endpoint simple du TP1"""
     try:
-        response = await llm_service.generate_response(request.message)
+        # Générer un session_id unique si aucun n'est fourni
+        session_id = str(uuid.uuid4())
+        response = await llm_service.generate_response(request.message, session_id=session_id)
         return ChatResponse(response=response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
