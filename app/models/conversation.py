@@ -7,8 +7,16 @@ class Message(BaseModel):
     content: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
+    class Config:
+        # Automatically serialize datetime to ISO 8601 string
+        json_encoders = {datetime: lambda v: v.isoformat()}
+
 class Conversation(BaseModel):
     session_id: str
     messages: List[Message] = []
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Config:
+        # Automatically serialize datetime to ISO 8601 string
+        json_encoders = {datetime: lambda v: v.isoformat()}
