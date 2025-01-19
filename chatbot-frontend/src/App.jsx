@@ -4,30 +4,45 @@ import MessageInput from './components/MessageInput';
 import ConversationsList from './components/ConversationsList';
 import Login from './components/Login';
 import Register from './components/Register';
+import AdminLogin from './components/AdminLogin'; // Importer AdminLogin
+import AdminDashboard from './components/AdminDashboard'; // Importer AdminDashboard
 import { chatApi } from './services/api';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // État pour distinguer un utilisateur administrateur
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isAdminLogin, setIsAdminLogin] = useState(false); // État pour basculer vers AdminLogin
   const [messages, setMessages] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [editingSession, setEditingSession] = useState(null); // État pour la session en cours d'édition
-  const [newSessionName, setNewSessionName] = useState(''); // État pour le nouveau nom de la session
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role'); // Stocker le rôle dans le localStorage
+
+    console.log('Token from localStorage:', token);
+    console.log('Role from localStorage:', role);
+
     if (token) {
       setIsAuthenticated(true);
-      loadSessions();
+      if (role === 'admin') {
+        console.log('Admin logged in');
+        setIsAdmin(true);
+      } else {
+        console.log('User logged in');
+        setIsAdmin(false);
+        loadSessions();
+      }
     }
   }, []);
 
   useEffect(() => {
     if (currentSession) {
+      console.log('Current session:', currentSession);
       loadHistory();
     }
   }, [currentSession]);
@@ -35,6 +50,7 @@ function App() {
   const loadSessions = async () => {
     try {
       const response = await chatApi.getAllSessions();
+      console.log('Loaded sessions:', response);
       setSessions(response);
       if (response.length > 0) {
         setCurrentSession(response[0]);
@@ -47,6 +63,7 @@ function App() {
   const loadHistory = async () => {
     try {
       const history = await chatApi.getHistory(currentSession);
+      console.log('Loaded history:', history);
       setMessages(history);
     } catch (error) {
       console.error('Error loading history:', error);
@@ -95,59 +112,58 @@ function App() {
     }
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (role) => {
+    console.log('Login successful, role:', role); // Log pour vérifier le rôle
     setIsAuthenticated(true);
-    loadSessions();
+    if (role === 'admin') {
+      setIsAdmin(true); // Activer le mode administrateur
+    } else {
+      setIsAdmin(false); // Mode utilisateur standard
+      loadSessions(); // Charger les sessions uniquement pour les utilisateurs
+    }
   };
 
+
   const handleLogout = () => {
+    console.log('User logged out');
     localStorage.removeItem('token');
+    localStorage.removeItem('role'); // Supprimer le rôle stocké
     setIsAuthenticated(false);
+    setIsAdmin(false); // Réinitialiser l'état admin
     setMessages([]);
     setSessions([]);
     setCurrentSession(null);
   };
-  const handleRenameSession = async (sessionId, newName) => {
-    console.log(`Demande de renommage pour la session ${sessionId} en ${newName}`);
-    setSessions((prevSessions) =>
-      prevSessions.map((session) =>
-        session === sessionId ? newName : session
-      )
-    );
-    try {
-      await chatApi.renameSession(sessionId, newName);
-      console.log('Renommage réussi côté backend');
-    } catch (err) {
-      console.error('Erreur lors de la requête de renommage :', err);
-    }
-  };
-
-  const handleRenameSubmit = async (session) => {
-    if (newSessionName.trim() !== '') {
-      console.log(`Renommage de la session ${session} en ${newSessionName.trim()}`);
-      try {
-        await onRenameSession(session, newSessionName.trim());
-        console.log(`Session renommée avec succès : ${newSessionName.trim()}`);
-        setEditingSession(null); // Quitter le mode édition une fois le renommage réussi
-      } catch (error) {
-        console.error('Erreur lors du renommage :', error);
-      }
-    }
-  };
-
-
 
   if (!isAuthenticated) {
-    return isRegistering ? (
-      <Register onRegisterSuccess={() => setIsRegistering(false)} />
-    ) : (
-      <Login
-        onLoginSuccess={handleLoginSuccess}
-        onSwitchToRegister={() => setIsRegistering(true)}
-      />
-    );
+    console.log('User not authenticated');
+    if (isRegistering) {
+      return <Register onRegisterSuccess={() => setIsRegistering(false)} />;
+    } else if (isAdminLogin) {
+      return (
+        <AdminLogin
+          onLoginSuccess={(role) => handleLoginSuccess(role)}
+          onSwitchToUserLogin={() => setIsAdminLogin(false)} // Retour au login utilisateur
+        />
+      );
+    } else {
+      return (
+        <Login
+          onLoginSuccess={(role) => handleLoginSuccess(role)}
+          onSwitchToRegister={() => setIsRegistering(true)}
+          onSwitchToAdminLogin={() => setIsAdminLogin(true)} // Basculer vers AdminLogin
+        />
+      );
+    }
   }
 
+  // Si l'utilisateur est un administrateur, afficher le tableau de bord admin
+  if (isAdmin) {
+    console.log('Displaying AdminDashboard');
+    return <AdminDashboard />;
+  }
+
+  console.log('Displaying Chat Interface for User');
   return (
     <div className="app-container min-h-screen bg-gray-100">
       {/* Header */}
@@ -170,7 +186,6 @@ function App() {
           onSessionChange={setCurrentSession}
           onCreateSession={handleCreateSession}
           onDeleteSession={handleDeleteSession}
-          onRenameSession={handleRenameSession}
         />
         {/* Chat Area */}
         <div className="flex-1 flex flex-col bg-white shadow-xl rounded-tl-lg">
@@ -183,7 +198,6 @@ function App() {
       </div>
     </div>
   );
-
 }
 
 export default App;

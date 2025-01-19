@@ -4,6 +4,8 @@ from typing import List, Dict, Optional
 from models.conversation import Conversation, Message
 from models.response_models import ConversationResponse, MessageResponse
 from core.config import settings
+from bcrypt import hashpw, gensalt, checkpw
+
 
 class MongoService:
     def __init__(self):
@@ -11,6 +13,40 @@ class MongoService:
         self.client = AsyncIOMotorClient(settings.mongodb_uri)
         self.db = self.client[settings.database_name]
         self.conversations = self.db[settings.collection_name]
+        self.admins = self.db["admins"]  # Nouvelle collection pour les administrateurs
+
+    async def save_admin_key(self, admin_key: str) -> bool:
+        """
+        Enregistre la clé administrateur en tant que hash sécurisé dans MongoDB.
+        Si un administrateur existe déjà, la fonction ne fait rien.
+        """
+        existing_admin = await self.admins.find_one({"username": "admin"})
+        if existing_admin:
+            print("Un administrateur existe déjà.")
+            return False
+
+        # Hacher la clé administrateur
+        hashed_key = hashpw(admin_key.encode('utf-8'), gensalt())
+
+        # Insérer l'administrateur dans la base de données
+        admin_document = {
+            "username": "admin",
+            "key_hash": hashed_key.decode('utf-8'),  # Stocker le hash de la clé
+            "role": "admin",
+            "created_at": datetime.utcnow()
+        }
+        result = await self.admins.insert_one(admin_document)
+        return result.inserted_id is not None
+
+    async def verify_admin_key(self, admin_key: str) -> bool:
+        """
+        Vérifie si une clé administrateur est valide en comparant le hash.
+        """
+        admin = await self.admins.find_one({"username": "admin"})
+        if admin:
+            stored_hash = admin["key_hash"].encode('utf-8')
+            return checkpw(admin_key.encode('utf-8'), stored_hash)
+        return False
 
     async def save_message(self, session_id: str, role: str, content: str) -> bool:
         """
@@ -35,12 +71,11 @@ class MongoService:
         if conversation:
             # Convertir les timestamps en chaînes
             for message in conversation.get("messages", []):
-                message["timestamp"] = format_datetime(message.get("timestamp"))
-            conversation["created_at"] = format_datetime(conversation.get("created_at"))
-            conversation["updated_at"] = format_datetime(conversation.get("updated_at"))
+                message["timestamp"] = self.format_datetime(message.get("timestamp"))
+            conversation["created_at"] = self.format_datetime(conversation.get("created_at"))
+            conversation["updated_at"] = self.format_datetime(conversation.get("updated_at"))
             return conversation.get("messages", [])
         return []
-
 
     async def delete_conversation(self, session_id: str, user_email: str) -> bool:
         """
@@ -89,7 +124,7 @@ class MongoService:
         )
         return result.modified_count > 0
 
-    def format_datetime(dt: datetime) -> str:
+    def format_datetime(self, dt: datetime) -> str:
         if dt:
             return dt.strftime('%Y-%m-%d %H:%M:%S')
         return None

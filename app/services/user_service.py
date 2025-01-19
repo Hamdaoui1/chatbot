@@ -24,17 +24,29 @@ class UserService:
         return pwd_context.verify(plain_password, hashed_password)
 
     async def create_user(self, user_data: UserCreate) -> User:
+        """
+        Crée un utilisateur avec un rôle spécifique.
+        Si aucun rôle n'est fourni, il est défini comme `user` par défaut.
+        """
+        # Hacher le mot de passe
         hashed_password = self.hash_password(user_data.password)
-        user = User(
-            first_name=user_data.first_name,
-            last_name=user_data.last_name,
-            email=user_data.email,
-            hashed_password=hashed_password,
-            created_at=datetime.utcnow()
-        )
-        result = await self.users.insert_one(user.model_dump())
-        user.id = str(result.inserted_id)
-        return user
+
+        # Préparer les données utilisateur pour l'insertion
+        user_dict = {
+            "first_name": user_data.first_name,
+            "last_name": user_data.last_name,
+            "email": user_data.email,
+            "hashed_password": hashed_password,
+            "role": user_data.role if user_data.role else "user",
+            "created_at": datetime.utcnow()
+        }
+
+        # Insérer l'utilisateur dans la base de données
+        result = await self.users.insert_one(user_dict)
+
+        # Récupérer l'ID inséré et retourner un objet User
+        return User(id=str(result.inserted_id), **user_dict)
+
 
 
     async def get_user_by_email(self, email: str) -> Optional[User]:

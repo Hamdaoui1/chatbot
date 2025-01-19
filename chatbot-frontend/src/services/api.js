@@ -8,6 +8,16 @@ export const chatApi = {
     return response.data;
   },
 
+  adminLogin: async (adminKey) => {
+    // Inclure la clé admin dans l'URL comme paramètre query
+    const response = await axios.post(`${API_URL}/auth/admin/login`, null, {
+      params: {
+        admin_key: adminKey,
+      },
+    });
+    return response.data;
+  },
+
   register: async (data) => {
     const response = await axios.post(`${API_URL}/auth/register`, {
       first_name: data.first_name,
@@ -71,5 +81,4 @@ export const chatApi = {
     );
     return response.data;
   },
-
 };

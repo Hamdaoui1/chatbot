@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { chatApi } from '../services/api';
 
-const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
+const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToAdminLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -64,6 +64,15 @@ const Login = ({ onLoginSuccess, onSwitchToRegister }) => {
                         className="text-blue-600 hover:underline"
                     >
                         Register here
+                    </button>
+                </p>
+                <p className="text-center mt-4 text-sm">
+                    Are you an admin?{' '}
+                    <button
+                        onClick={onSwitchToAdminLogin}
+                        className="text-blue-600 hover:underline"
+                    >
+                        Login as Admin
                     </button>
                 </p>
             </div>
