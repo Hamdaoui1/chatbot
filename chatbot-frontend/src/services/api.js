@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000';
+let usersCache = null;
+let lastFetch = null;
 
 export const chatApi = {
   login: async (data) => {
@@ -81,4 +83,115 @@ export const chatApi = {
     );
     return response.data;
   },
+
+  getAllUsers: async () => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'admin') {
+      throw new Error('Unauthorized access');
+    }
+
+    try {
+      const response = await axios.get(`${API_URL}/auth/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      // Update cache
+      usersCache = response.data;
+      lastFetch = Date.now();
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
+
+  deleteUser: async (userId) => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'admin') {
+      throw new Error('Unauthorized access');
+    }
+
+    try {
+      const response = await axios.delete(`${API_URL}/auth/admin/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Invalidate cache after successful deletion
+      usersCache = null;
+      lastFetch = null;
+
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error.response?.data?.detail ? new Error(error.response.data.detail) : error;
+    }
+  },
+
+  toggleUserBlock: async (userId) => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    if (!token || role !== 'admin') {
+      throw new Error('Unauthorized access');
+    }
+
+    try {
+      const response = await axios.put(
+        `${API_URL}/auth/admin/users/${userId}/toggle-block`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Invalider le cache pour forcer un rechargement
+      usersCache = null;
+      lastFetch = null;
+
+      // Retourner la réponse avec le nouveau statut
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling user block status:', error);
+      throw error.response?.data?.detail
+        ? new Error(error.response.data.detail)
+        : error;
+    }
+  },
+
+  checkUserStatus: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      const response = await axios.get(`${API_URL}/auth/user/status`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 403 && error.response?.data?.detail === "This account has been blocked") {
+        // L'utilisateur est bloqué, déconnecter
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/'; // Rediriger vers la page de connexion
+      }
+      throw error;
+    }
+  }
 };

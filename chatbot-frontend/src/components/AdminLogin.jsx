@@ -8,7 +8,7 @@ const AdminLogin = ({ onLoginSuccess, onSwitchToUserLogin }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        setIsLoading(true);
         // Validation du champ clé admin
         if (!adminKey.trim()) {
             setError('Admin key cannot be empty.');

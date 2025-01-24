@@ -12,4 +12,8 @@ class Settings:
         bcrypt.gensalt()
     ).decode()  # Utilisation correcte pour générer un hash de la clé admin
 
+# Crée une instance de la classe Settings après sa définition
 settings = Settings()
+
+# Ajoutez un print pour valider
+print(f"SECRET_KEY chargé : {settings.secret_key}")

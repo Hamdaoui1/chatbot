@@ -10,10 +10,8 @@ class User(BaseModel):
     email: EmailStr
     hashed_password: str
     created_at: datetime = datetime.utcnow()
-    role: str = "user"  # Champ pour le rôle (par défaut "user")
-
-    class Config:
-        orm_mode = True
+    role: str = "user"
+    is_blocked: bool = False
 
 class UserCreate(BaseModel):
     """
@@ -35,3 +33,4 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     role: str  # Retourner le rôle dans la réponse
+    is_blocked: bool = False

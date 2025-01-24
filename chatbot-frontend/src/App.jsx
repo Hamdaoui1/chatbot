@@ -21,24 +21,23 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role'); // Stocker le rôle dans le localStorage
-
-    console.log('Token from localStorage:', token);
-    console.log('Role from localStorage:', role);
-
-    if (token) {
-      setIsAuthenticated(true);
-      if (role === 'admin') {
-        console.log('Admin logged in');
-        setIsAdmin(true);
-      } else {
-        console.log('User logged in');
-        setIsAdmin(false);
-        loadSessions();
+    const checkStatus = async () => {
+      if (isAuthenticated && !isAdmin) {
+        try {
+          await chatApi.checkUserStatus();
+        } catch (error) {
+          if (error.response?.status === 403) {
+            handleLogout();
+          }
+        }
       }
-    }
-  }, []);
+    };
+
+    // Vérifier le statut toutes les 30 secondes
+    const statusInterval = setInterval(checkStatus, 30000);
+
+    return () => clearInterval(statusInterval);
+  }, [isAuthenticated, isAdmin]);
 
   useEffect(() => {
     if (currentSession) {
