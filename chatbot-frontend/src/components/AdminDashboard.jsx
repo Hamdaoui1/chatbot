@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import UserManagement from './UserManagement'; // Importation du composant UserManagement
-
+import UploadPDF from './UploadPDF'; // Importation du composant UploadPDF
 const AdminDashboard = ({ onLogout }) => {
     const [view, setView] = useState('dashboard');
 
@@ -99,11 +99,10 @@ const AdminDashboard = ({ onLogout }) => {
                 {view === 'settings' && (
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <h1 className="text-3xl font-bold text-blue-600 mb-4">Paramètres</h1>
-                        <p className="text-lg text-gray-700 mb-6">
-                            Gérez les paramètres administratifs de l'application.
-                        </p>
+                        <UploadPDF /> {/* Inclusion du composant pour l'upload */}
                     </div>
                 )}
+
             </main>
         </div>
     );

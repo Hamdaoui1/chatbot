@@ -193,5 +193,25 @@ export const chatApi = {
       }
       throw error;
     }
+  },
+  uploadPDF: async (formData) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/admin/upload-pdf`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  chatWithRAG: async (userInput, sessionId) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(
+      `${API_URL}/chat-with-rag`,
+      { message: userInput, session_id: sessionId },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
   }
+
 };
