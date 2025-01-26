@@ -2,9 +2,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.router import router as api_router
-from services.llm_service import LLMService
+from services.EnhancedLLMService import EnhancedLLMService
 import uvicorn
 from contextlib import asynccontextmanager
+from core.config import settings  # Importez les paramètres depuis config.py
 
 load_dotenv()
 
@@ -23,7 +24,12 @@ app.add_middleware(
 )
 
 # Instance du service LLM
-llm_service = LLMService()
+llm_service = EnhancedLLMService(
+    mongo_uri=settings.mongodb_uri,          # Utilise l'URI MongoDB défini dans config.py
+    db_name=settings.database_name,          # Utilise le nom de la base de données
+    collection_name="pdf_chunks",            # Nom de la collection contenant les chunks
+    embedding_model_name="all-MiniLM-L6-v2"  # Nom du modèle d'embedding utilisé
+)
 
 # Inclure les routes
 app.include_router(api_router)

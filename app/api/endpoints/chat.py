@@ -5,7 +5,7 @@ Inclut les endpoints du TP1 et du TP2, avec authentification
 """
 from fastapi import APIRouter, HTTPException, Depends
 from models.chat import ChatRequestTP1, ChatRequestTP2, ChatRequestWithContext, ChatResponse
-from services.llm_service import LLMService
+from services.EnhancedLLMService import EnhancedLLMService
 from typing import Dict, List
 import uuid
 from fastapi.security import OAuth2PasswordBearer
@@ -14,10 +14,16 @@ import os
 import logging
 from fastapi import APIRouter, HTTPException, Depends, Body
 from datetime import datetime
+from core.config import settings
 
 router = APIRouter()
-llm_service = LLMService()
 
+llm_service = EnhancedLLMService(
+    mongo_uri=settings.mongodb_uri,
+    db_name=settings.database_name,
+    collection_name="pdf_chunks",  # Assurez-vous que cela correspond à votre collection
+    embedding_model_name="all-MiniLM-L6-v2"  # Modèle utilisé pour les embeddings
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
@@ -62,14 +68,21 @@ async def chat_with_context(request: ChatRequestWithContext, user: str = Depends
         raise HTTPException(status_code=500, detail=f"Erreur interne : {e}")
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequestTP2, user: str = Depends(get_current_user)) -> ChatResponse:
-    """Nouvel endpoint du TP2 avec gestion de session et authentification."""
     logging.info(f"Demande reçue pour chat : message={request.message}, session_id={request.session_id}")
     try:
+        # Vérifiez si les champs nécessaires sont présents
+        if not request.message or not request.session_id:
+            logging.error("Message ou session_id manquant")
+            raise HTTPException(status_code=400, detail="Message ou session_id manquant")
+
+        # Appel au service LLM
         response = await llm_service.generate_response(request.message, request.session_id, user_email=user)
+        logging.info(f"Réponse générée avec succès : {response}")
         return ChatResponse(response=response)
     except Exception as e:
         logging.error(f"Erreur dans chat : {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la réponse : {e}")
+
 @router.get("/sessions")
 async def get_all_sessions(user: str = Depends(get_current_user)) -> List[str]:
     """Récupération de toutes les sessions disponibles de l'utilisateur."""
@@ -143,7 +156,6 @@ async def rename_session(session_id: str, new_name: str = Body(..., embed=True),
     except Exception as e:
         logging.error(f"Erreur dans rename_session : {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors du renommage de la session : {e}")
-
 def format_datetime(dt: datetime) -> str:
     """
     Convertit un objet datetime en chaîne.

@@ -31,6 +31,11 @@ export const chatApi = {
   },
 
   sendMessage: async (message, sessionId) => {
+    if (!message || !sessionId) {
+      console.error("Message ou sessionId manquant");
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const response = await axios.post(
       `${API_URL}/chat/chat`,
