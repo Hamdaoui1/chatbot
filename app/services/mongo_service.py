@@ -5,9 +5,12 @@ from models.conversation import Conversation, Message
 from models.response_models import ConversationResponse, MessageResponse
 from core.config import settings
 from bcrypt import hashpw, gensalt, checkpw
+import logging
+
 
 
 class MongoService:
+
     def __init__(self):
         # Initialisation du client MongoDB et des collections
         self.client = AsyncIOMotorClient(settings.mongodb_uri)
@@ -113,15 +116,20 @@ class MongoService:
             return result.inserted_id is not None
         except Exception as e:
             raise RuntimeError(f"Erreur lors de la création de la session : {e}")
-
     async def rename_session(self, session_id: str, new_name: str, user_email: str) -> bool:
         """
-        Renomme une session appartenant à un utilisateur.
+        Renomme une session en modifiant le champ session_id.
         """
+        logging.info(f"Tentative de renommage de la session {session_id} pour {user_email} avec le nouveau nom {new_name}")
+
         result = await self.conversations.update_one(
-            {"session_id": session_id, "user_email": user_email},
-            {"$set": {"session_name": new_name, "updated_at": datetime.utcnow()}}
+            {"session_id": session_id, "user_email": user_email},  # Filtre sur session_id et email
+            {"$set": {"session_id": new_name, "updated_at": datetime.utcnow()}}  # Met à jour session_id
         )
+
+        logging.info(f"Résultat de la requête update_one : matched_count={result.matched_count}, modified_count={result.modified_count}")
+
+        # Retourner si la mise à jour a modifié un document
         return result.modified_count > 0
 
     def format_datetime(self, dt: datetime) -> str:

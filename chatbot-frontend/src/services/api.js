@@ -81,13 +81,20 @@ export const chatApi = {
 
   renameSession: async (sessionId, newName) => {
     const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `${API_URL}/chat/rename-session/${sessionId}`,
-      { new_name: newName },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return response.data;
-  },
+    try {
+        const response = await axios.put(
+            `${API_URL}/chat/rename-session/${sessionId}`,
+            { new_name: newName },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la requête de renommage de session :', error.response?.data || error.message);
+        throw error;
+    }
+},
+
+
 
   getAllUsers: async () => {
     const token = localStorage.getItem('token');

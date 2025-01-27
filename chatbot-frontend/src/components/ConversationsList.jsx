@@ -13,7 +13,16 @@ const ConversationsList = ({ sessions, currentSession, onSessionChange, onCreate
     setNewSessionName(session);
     console.log(`État après clic sur renommer : editingSession=${session}, newSessionName=${session}`);
   };
-
+  const handleRenameSession = async () => {
+    if (!editingSession) return; // Pas de session sélectionnée
+    try {
+      await onRenameSession(editingSession, newSessionName); // Appelle la fonction du parent
+      console.log(`Session ${editingSession} renommée en ${newSessionName}`);
+      setEditingSession(null); // Quitte le mode édition
+    } catch (error) {
+      console.error("Erreur lors du renommage de la session :", error);
+    }
+  };
   const handleRenameSubmit = (session) => {
     console.log(`Soumission du nouveau nom : ${newSessionName} pour la session : ${session}`);
     if (newSessionName.trim() !== '' && newSessionName !== session) {

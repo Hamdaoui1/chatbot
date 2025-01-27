@@ -82,7 +82,6 @@ async def chat(request: ChatRequestTP2, user: str = Depends(get_current_user)) -
     except Exception as e:
         logging.error(f"Erreur dans chat : {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la génération de la réponse : {e}")
-
 @router.get("/sessions")
 async def get_all_sessions(user: str = Depends(get_current_user)) -> List[str]:
     """Récupération de toutes les sessions disponibles de l'utilisateur."""
@@ -149,13 +148,15 @@ async def rename_session(session_id: str, new_name: str = Body(..., embed=True),
     """
     logging.info(f"Demande de renommage de la session {session_id} par l'utilisateur {user} en {new_name}")
     try:
-        result = await llm_service.mongo_service.rename_conversation(session_id, new_name, user)
+        # Utilisez rename_session au lieu de rename_conversation
+        result = await llm_service.mongo_service.rename_session(session_id, new_name, user)
         if not result:
             raise HTTPException(status_code=404, detail="Session non trouvée")
         return {"message": "Session renommée avec succès"}
     except Exception as e:
         logging.error(f"Erreur dans rename_session : {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors du renommage de la session : {e}")
+
 def format_datetime(dt: datetime) -> str:
     """
     Convertit un objet datetime en chaîne.

@@ -133,6 +133,22 @@ function App() {
     setSessions([]);
     setCurrentSession(null);
   };
+  const renameSession = async (sessionId, newName) => {
+    try {
+        console.log(`Renommage de la session ${sessionId} en ${newName}`);
+        const response = await chatApi.renameSession(sessionId, newName); // Appel de l'API
+        console.log('Réponse du backend :', response);
+        // Mettre à jour les sessions localement si nécessaire
+
+       setSessions((prevSessions) =>
+            prevSessions.map((session) =>
+                session === sessionId ? newName : session
+            )
+        );
+    } catch (error) {
+        console.error('Erreur lors du renommage de la session :', error);
+    }
+};
 
   if (!isAuthenticated) {
     console.log('User not authenticated');
@@ -186,6 +202,7 @@ function App() {
           onSessionChange={setCurrentSession}
           onCreateSession={handleCreateSession}
           onDeleteSession={handleDeleteSession}
+          onRenameSession={renameSession} 
         />
         {/* Chat Area */}
         <div className="flex-1 flex flex-col bg-gray-800 shadow-xl rounded-tl-lg">
