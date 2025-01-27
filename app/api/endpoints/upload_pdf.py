@@ -7,8 +7,9 @@ import os
 from models.user import User
 from services.mongo_service import MongoService
 from services.user_service import get_current_admin_user
-
+from services.vector_search_service import VectorSearchService  # Importer VectorSearchService
 router = APIRouter()
+import asyncio
 
 # Charger le modèle pour la vectorisation
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -20,6 +21,14 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 
 # MongoService pour l'interaction avec MongoDB
 mongo_service = MongoService()
+
+# Initialiser le service de recherche vectorielle
+vector_search_service = VectorSearchService(
+    mongo_uri=os.getenv("MONGODB_URI"),
+    db_name=os.getenv("DATABASE_NAME"),
+    collection_name="pdf_chunks",
+    embedding_model_name="all-MiniLM-L6-v2"
+)
 
 @router.post("/upload-pdf")
 async def upload_pdf(
@@ -62,14 +71,21 @@ async def upload_pdf(
 
     # Stockage dans MongoDB
     try:
-        for chunk, vector in zip(chunks, vectors):
-            await mongo_service.db["pdf_chunks"].insert_one({
+        insertion_tasks = [
+            mongo_service.db["pdf_chunks"].insert_one({
                 "file_name": file.filename,
                 "page_number": chunk["page_number"],
                 "text": chunk["text"],
                 "vector": vector.tolist()
             })
+            for chunk, vector in zip(chunks, vectors)
+        ]
+        await asyncio.gather(*insertion_tasks)  # Attendre la fin de toutes les insertions
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors du stockage dans MongoDB : {e}")
 
-    return {"message": "Fichier traité et stocké avec succès.", "file_name": file.filename}
+    # Recharger l'index FAISS
+    try:
+        vector_search_service.reload_index()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors du rechargement de l'index FAISS : {e}")

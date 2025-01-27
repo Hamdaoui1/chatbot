@@ -46,45 +46,53 @@ const AdminLogin = ({ onLoginSuccess, onSwitchToUserLogin }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-2xl font-semibold text-center mb-6">Admin Login</h2>
-                {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+            <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-md p-8">
+                <h2 className="text-2xl font-semibold text-center mb-6 text-white">
+                    Admin Login
+                </h2>
+                {error && (
+                    <p className="text-red-500 text-center mb-4">{error}</p>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Admin Key</label>
+                        <label className="block text-sm font-medium text-gray-300">
+                            Admin Key
+                        </label>
                         <input
                             type="password"
                             placeholder="Enter your admin key"
                             value={adminKey}
                             onChange={(e) => setAdminKey(e.target.value)}
                             required
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={isLoading} // Désactiver le bouton si le loader est actif
-                        className={`w-full py-2 px-4 text-white rounded-lg transition ${isLoading
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
+                        className={`w-full py-2 px-4 rounded-lg text-white font-semibold transition ${isLoading
+                                ? 'bg-gray-600 cursor-not-allowed'
+                                : 'bg-gray-700 hover:bg-gray-600 focus:ring-2 focus:ring-gray-500'
                             }`}
                     >
-                        {isLoading ? 'Loading...' : 'Login as Admin'} {/* Affichage du loader */}
+                        {isLoading ? 'Loading...' : 'Login as Admin'}
                     </button>
                 </form>
-                <p className="text-center mt-4 text-sm">
+                <p className="text-center mt-4 text-sm text-gray-400">
                     Not an admin?{' '}
                     <button
                         onClick={onSwitchToUserLogin} // Fonction pour basculer vers la page utilisateur
-                        className="text-blue-600 hover:underline"
+                        className="py-2 px-4 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
                     >
                         Login as User
                     </button>
                 </p>
+
             </div>
         </div>
     );
+
 };
 
 export default AdminLogin;

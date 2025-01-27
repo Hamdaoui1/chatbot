@@ -164,17 +164,18 @@ function App() {
 
   console.log('Displaying Chat Interface for User');
   return (
-    <div className="app-container min-h-screen bg-gray-100">
+    <div className="app-container min-h-screen bg-gray-900 text-gray-200">
       {/* Header */}
-      <header className="app-header bg-gradient-to-r from-blue-500 to-blue-700 text-white px-6 py-4 shadow-lg flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-wide">Chat Application</h1>
+      <header className="bg-gray-900 text-white px-6 py-4 shadow-lg flex justify-between items-center border-b border-gray-800 ">
+        <h1 className="text-3xl font-bold tracking-wide">My_Chat</h1>
         <button
           onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 active:bg-red-700 text-white px-5 py-2 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105"
+          className="bg-gray-700 hover:bg-gray-600 active:bg-gray-800 text-white px-5 py-2 rounded-md shadow-md transition duration-300 ease-in-out transform hover:scale-105 border border-gray-600 hover:border-gray-400"
         >
           Logout
         </button>
       </header>
+
 
       {/* Main content */}
       <div className="flex h-screen">
@@ -187,7 +188,7 @@ function App() {
           onDeleteSession={handleDeleteSession}
         />
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-white shadow-xl rounded-tl-lg">
+        <div className="flex-1 flex flex-col bg-gray-800 shadow-xl rounded-tl-lg">
           <ChatWindow messages={messages} />
           <MessageInput
             onSendMessage={handleSendMessage}
@@ -197,6 +198,7 @@ function App() {
       </div>
     </div>
   );
+
 }
 
 export default App;

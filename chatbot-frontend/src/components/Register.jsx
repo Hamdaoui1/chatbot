@@ -33,67 +33,74 @@ const Register = ({ onRegisterSuccess }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md p-8 bg-white shadow-lg rounded-lg">
-                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Create an Account</h2>
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+            <div className="w-full max-w-md p-8 bg-gray-800 shadow-lg rounded-lg">
+                <h2 className="text-2xl font-bold text-center text-white mb-6">
+                    Create an Account
+                </h2>
                 {error && <p className="text-red-500 text-center mb-4">{error}</p>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">First Name</label>
+                        <label className="block text-sm font-medium text-gray-400">First Name</label>
                         <input
                             type="text"
                             name="firstName"
                             value={formData.firstName}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                        <label className="block text-sm font-medium text-gray-400">Last Name</label>
                         <input
                             type="text"
                             name="lastName"
                             value={formData.lastName}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-sm font-medium text-gray-400">Email</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                        <label className="block text-sm font-medium text-gray-400">Password</label>
                         <input
                             type="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
+                        className="w-full py-2 px-4 bg-gray-700 text-white font-semibold rounded-lg shadow-md 
+               hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 
+               transition duration-300 ease-in-out"
                     >
                         Register
                     </button>
+
                 </form>
-                <p className="text-center mt-4">
+                <p className="text-center mt-4 text-gray-400">
                     Already have an account?{' '}
                     <button
                         onClick={onRegisterSuccess}
-                        className="text-blue-600 hover:underline"
+                        className="w-full py-2 px-4 bg-gray-700 text-white font-semibold rounded-lg shadow-md 
+               hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 
+               transition duration-300 ease-in-out"
                     >
                         Login here
                     </button>
@@ -101,6 +108,7 @@ const Register = ({ onRegisterSuccess }) => {
             </div>
         </div>
     );
+
 };
 
 export default Register;
