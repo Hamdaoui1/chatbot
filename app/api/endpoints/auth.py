@@ -8,7 +8,9 @@ from jose import jwt, JWTError
 from core.config import settings
 import bcrypt
 from typing import List
+from typing import List, Dict  
 from bson import ObjectId
+import logging
 
 router = APIRouter()
 
@@ -18,6 +20,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 SECRET_KEY = settings.secret_key
+
+# Configuration du logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Helper function to create a JWT token
 def create_access_token(data: dict, expires_delta: timedelta):
@@ -263,3 +269,33 @@ async def check_user_status(current_user: User = Depends(get_current_user)):
         )
         
     return {"status": "active"}
+
+class UserStatsResponse(BaseModel):
+    date: str
+    count: int
+
+@router.get("/admin/user-stats", response_model=List[UserStatsResponse])
+async def get_user_stats(days: int = 30, current_user: User = Depends(get_current_admin_user)):
+    try:
+        # Log des paramètres reçus
+        logger.info(f"Requête pour les statistiques avec days={days}, utilisateur : {current_user.email}")
+
+        stats = await user_service.get_user_stats(days)
+        
+        # Log des résultats
+        logger.info(f"Statistiques renvoyées : {stats}")
+        
+        return stats
+    except Exception as e:
+        # Log des erreurs
+        logger.error(f"Erreur dans /admin/user-stats : {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur : {str(e)}")
+@router.get("/admin/sessions-per-user")
+async def get_sessions_per_user(current_user: User = Depends(get_current_admin_user)):
+    try:
+        stats = await user_service.get_sessions_per_user()
+        return stats
+    except Exception as e:
+        logger.error(f"Erreur dans /admin/sessions-per-user : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

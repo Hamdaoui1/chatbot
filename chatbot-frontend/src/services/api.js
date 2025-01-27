@@ -217,6 +217,49 @@ export const chatApi = {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
-  }
+  },
+  getUserStats: async (days) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.error('Aucun token trouvé dans le localStorage.');
+        throw new Error('Utilisateur non authentifié');
+    }
+
+    try {
+        console.log(`Envoi d'une requête pour les statistiques avec days=${days}`);
+        const response = await axios.get(`${API_URL}/auth/admin/user-stats`, {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { days },
+        });
+
+        // Log des données reçues
+        console.log('Réponse API pour les statistiques :', response.data);
+
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de l\'appel à /auth/admin/user-stats :', error.response?.data || error.message);
+        throw error;
+    }
+},
+getSessionsPerUser: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        console.error('Token non trouvé dans localStorage.');
+        throw new Error('Utilisateur non authentifié');
+    }
+
+    try {
+        const response = await axios.get(`${API_URL}/auth/admin/sessions-per-user`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log('Réponse API pour sessions par utilisateur :', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de l\'appel à /auth/admin/sessions-per-user :', error.response?.data || error.message);
+        throw error;
+    }
+},
+
+
 
 };

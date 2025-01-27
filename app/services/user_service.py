@@ -3,12 +3,14 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from models.user import User, UserCreate
 from core.config import settings
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
+from typing import Optional, List, Dict  # Ajout de l'importation manquante
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from typing import List
+import logging
 
 # Initialisation du contexte de hachage
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -16,6 +18,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Configuration de l'OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
+# Configuration du logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class UserService:
     def __init__(self):
@@ -61,6 +66,51 @@ class UserService:
         if user:
             return User(**user)
         return None
+    async def get_user_stats(self, days: int) -> List[Dict[str, int]]:
+        try:
+            end_date = datetime.utcnow()
+            start_date = end_date - timedelta(days=days)
+            
+            # Log des dates utilisées
+            logger.info(f"Calcul des statistiques pour les {days} derniers jours.")
+            logger.info(f"Date de début : {start_date}, date de fin : {end_date}")
+
+            pipeline = [
+                {"$match": {"created_at": {"$gte": start_date, "$lte": end_date}}},
+                {"$group": {"_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}}, "count": {"$sum": 1}}},
+                {"$sort": {"_id": 1}}
+            ]
+            
+            # Log du pipeline
+            logger.info(f"Pipeline utilisé : {pipeline}")
+            
+            stats = await self.users.aggregate(pipeline).to_list(length=None)
+            
+            # Log des statistiques récupérées
+            logger.info(f"Statistiques récupérées : {stats}")
+            
+            return [{"date": stat["_id"], "count": stat["count"]} for stat in stats]
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des statistiques des utilisateurs : {e}")
+            raise HTTPException(status_code=500, detail=f"Erreur : {str(e)}")
+    async def get_sessions_per_user(self) -> List[Dict[str, int]]:
+        try:
+            pipeline = [
+                # Grouper les conversations par email de l'utilisateur
+                {"$group": {"_id": "$user_email", "count": {"$sum": 1}}},
+                # Projet pour renvoyer les emails et les nombres de sessions
+                {"$project": {"user_email": "$_id", "count": 1, "_id": 0}},
+                {"$sort": {"user_email": 1}}  # Trier par email pour plus de lisibilité
+            ]
+            
+            # Exécuter le pipeline
+            sessions_stats = await self.db["conversations"].aggregate(pipeline).to_list(length=None)
+            logger.info(f"Statistiques des sessions par utilisateur : {sessions_stats}")
+            return sessions_stats
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération des sessions par utilisateur : {e}")
+            raise HTTPException(status_code=500, detail="Erreur lors de la récupération des sessions")
+
 
 
 # Fonction pour récupérer l'utilisateur courant

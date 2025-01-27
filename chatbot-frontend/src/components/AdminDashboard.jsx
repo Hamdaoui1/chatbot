@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import UserManagement from './UserManagement'; // Importation du composant UserManagement
 import UploadPDF from './UploadPDF'; // Importation du composant UploadPDF
+import UserStatsChart from './UserStatsChart'; // Importer UserStatsChart
+import SessionsPerUserChart from './SessionsPerUserChart';
+
 const AdminDashboard = ({ onLogout }) => {
     const [view, setView] = useState('dashboard');
 
@@ -83,6 +86,9 @@ const AdminDashboard = ({ onLogout }) => {
                             Utilisez les options dans la barre latérale pour gérer les
                             fonctionnalités administratives.
                         </p>
+                        <UserStatsChart /> {/* Inclusion du composant UserStatsChart */}
+                         <SessionsPerUserChart />
+
                     </div>
                 )}
                 {view === 'users' && (
