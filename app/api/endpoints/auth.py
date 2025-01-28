@@ -136,7 +136,7 @@ async def get_all_users(current_user: User = Depends(get_current_admin_user)):
                 "first_name": 1,
                 "last_name": 1,
                 "role": 1,
-                "is_blocked": 1  # Ajouter ce champ
+                "is_blocked": 1  
             }}
         ]
         

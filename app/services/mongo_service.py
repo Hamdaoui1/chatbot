@@ -124,7 +124,7 @@ class MongoService:
 
         result = await self.conversations.update_one(
             {"session_id": session_id, "user_email": user_email},  # Filtre sur session_id et email
-            {"$set": {"session_id": new_name, "updated_at": datetime.utcnow()}}  # Met à jour session_id
+            {"$set": {"session_name": new_name, "updated_at": datetime.utcnow()}}  # Met à jour session_id
         )
 
         logging.info(f"Résultat de la requête update_one : matched_count={result.matched_count}, modified_count={result.modified_count}")
